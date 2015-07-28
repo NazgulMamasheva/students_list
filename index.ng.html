@@ -1,0 +1,103 @@
+
+<body ng-app="StudentsList">
+<div ng-controller="StudentListCtrl" class="container"
+     tabindex="0" ng-keydown="$event.which === 46 && remove()">
+    <h3>Students list</h3>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th></th>
+            <th><a href="#" ng-click="orderByField='name'; reverseSort = !reverseSort">Name
+                <span ng-show="orderByField == 'name'"><span ng-show="!reverseSort">^</span><span ng-show="reverseSort">v</span></span></a>
+            </th>
+            <th><a href="#" ng-click="orderByField='surname'; reverseSort = !reverseSort">Surname
+                <span ng-show="orderByField == 'surname'"><span ng-show="!reverseSort">^</span><span ng-show="reverseSort">v</span></span></a>
+            </th>
+            <th><a href="#" ng-click="orderByField='date_of_birth'; reverseSort = !reverseSort">Age
+                <span ng-show="orderByField == 'date_of_birth'"><span ng-show="!reverseSort">^</span><span ng-show="reverseSort">v</span></span></a>
+            </th>
+            <th><a href="#" ng-click="orderByField='group'; reverseSort = !reverseSort">Group
+                <span ng-show="orderByField == 'group'"><span ng-show="!reverseSort">^</span><span ng-show="reverseSort">v</span></span></a>
+            </th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="rowHover" ng-repeat="student in students|orderBy:orderByField:reverseSort" ng-click="rowClicked(student)">
+            <td ng-style="student.checked && {'background-color': '#00008b'}"><input type="checkbox" ng-model="student.checked" ng-checked="student.checked"
+                 ng-click="checked($event, student.checked)" ng-disabled="isEdit && student==students[indexOfStudent]"/></td>
+            <td ng-style="student.checked && {'background-color': '#00008b', color: '#ffffff'}">{{student.name}}</td>
+            <td ng-style="student.checked && {'background-color': '#00008b', color: '#ffffff'}">{{student.surname}}</td>
+            <td ng-style="student.checked && {'background-color': '#00008b', color: '#ffffff'}">{{calculateAge(student.date_of_birth)}}</td>
+            <td ng-style="student.checked && {'background-color': '#00008b', color: '#ffffff'}">{{student.group}}</td>
+            <td ng-style="student.checked && {'background-color': '#00008b', color: '#ffffff'}"><button class="btn btn-success" ng-click="edit(student); $event.stopPropagation();"
+                 ng-disabled="student.checked"><span class="glyphicon glyphicon-edit"></span>&nbsp;&nbsp;Edit</button></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <button class="btn btn-success" ng-click="remove()">
+        <span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;Delete
+    </button>
+
+    <button class="btn btn-success" ng-click="removeAll()">
+        <span class="glyphicon glyphicon-trash"></span>&nbsp;&nbsp;Delete all
+    </button>
+
+
+
+    <hr>
+
+    <form class="form-horizontal" name="uForm" novalidate>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Name:</label>
+            <div class="col-sm-10">
+            <input type="text" name="uName" ng-init="student.name=''" ng-model="student.name" ng-pattern="/^[A-Z]{1}[a-z]{1,20}$/"
+                   required ng-focus="isFocus" ng-focus-lost="loseFocus()"/><br/>
+            <span style="color:red" ng-show="uForm.uName.$dirty && uForm.uName.$invalid">
+            <span class="error" ng-show="uForm.uName.$error.required">* This field is required</span>
+            <span class="error" ng-show="uForm.uName.$error.pattern">* First letter must be uppercase, the following letters must be lowercase, ex. Aijan</span>
+            </span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Surname:</label>
+            <div class="col-sm-10">
+            <input type="text" name="uSurname" ng-init="student.surname=''" ng-model="student.surname" ng-pattern="/^[A-Z]{1}[a-z]{1,20}$/" required /><br />
+            <span style="color:red" ng-show="uForm.uSurname.$dirty && uForm.uSurname.$invalid">
+            <span class="error" ng-show="uForm.uSurname.$error.required">* This field is required</span>
+            <span class="error" ng-show="uForm.uSurname.$error.pattern">* First letter must be uppercase, the following letters must be lowercase, ex. Azimbaeva</span>
+            </span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Date of birth:</label>
+            <div class="col-sm-10">
+            <input type="date" name="uBirthday" ng-init="student.birthday=''" ng-model="student.date_of_birth"  min="1900-01-01" max="2011-12-31" required /><br />
+            <span style="color:red" ng-show="uForm.uBirthday.$dirty && uForm.uGroup.$touched && uForm.uBirthday.$invalid">
+            <span class="error" ng-show="uForm.uBirthday.$error.required"></span>* Date value must be between 01-01-1900 and 31-12-2011.
+            </span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Group:</label>
+            <div class="col-sm-10">
+            <input type="text" name="uGroup" ng-init="student.group=''" ng-model="student.group" ng-pattern="/^[A-Z]{2,4}\-[0-9]{1,4}\-[1-9]{2}$/" required /><br />
+            <span style="color:red" ng-show="uForm.uGroup.$dirty && uForm.uGroup.$invalid ">
+            <span class="error" ng-show="uForm.uGroup.$error.required">* This field is required</span>
+            <span class="error" ng-show="uForm.uGroup.$error.pattern">* From 2 to 4 uppercase letters denoting specialty, group number and the year of admission, ex. ICT-1-15</span>
+            </span>
+            </div>
+        </div>
+        <button class="btn btn-success" ng-click="reset()">
+            <span class="glyphicon glyphicon-refresh"></span>&nbsp;&nbsp;Reset
+        </button>
+        <button class="btn btn-success" ng-disabled="uForm.$invalid" ng-click="save()">
+            <span class="glyphicon glyphicon-save"></span>&nbsp;&nbsp;Save
+        </button>
+    </form>
+
+</div>
+</body>
+
